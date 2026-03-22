@@ -3,37 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="referrer" content="no-referrer">
+    <title>Redirecting...</title>
     <script>
         window.onload = function() {
-            // 1. URL se "link" parameter nikalna
+            // 1. URL se "url" parameter nikalna
             const urlParams = new URLSearchParams(window.location.search);
             const targetBase64 = urlParams.get('url');
 
-            // 2. Agar URL parameter nahi hai, toh default link par bhejo
+            // Default link agar parameter missing ho
             let finalUrl = "https://get2short.com/aKlx"; 
 
             if (targetBase64) {
                 try {
-                    // Base64 decode karke asli link nikalna (Security ke liye)
+                    // Base64 decode karna
                     finalUrl = atob(targetBase64);
+                    
+                    // Link fix: Agar link mein http nahi hai toh add karein
+                    if (!finalUrl.startsWith('http')) {
+                        finalUrl = 'https://' + finalUrl;
+                    }
                 } catch (e) {
-                    console.error("Invalid Link Format");
+                    console.error("Invalid Base64 Format");
                 }
             }
 
-            // 3. Chrome Intent trigger karna (Android ke liye)
-            var chromeIntent = "intent://" + finalUrl.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
-            
-            window.location.replace(chromeIntent);
+            // 2. Android Chrome Intent (Force Open in Chrome)
+            if (/Android/i.test(navigator.userAgent)) {
+                // Protocol (http/https) hatana Intent ke liye
+                var cleanUrl = finalUrl.replace(/^https?:\/\//, "");
+                var chromeIntent = "intent://" + cleanUrl + "#Intent;scheme=https;package=com.android.chrome;end";
+                
+                window.location.replace(chromeIntent);
+            }
 
-            // 4. Fallback (iPhone/PC ke liye)
+            // 3. Fallback: Agar Intent kaam na kare ya iPhone/PC ho
             setTimeout(function() {
                 window.location.href = finalUrl;
-            }, 1500);
+            }, 800); // 800ms ka wait taaki Intent trigger hone ka time mile
         };
     </script>
 </head>
-<body>
-    <p style="text-align:center; margin-top:50px;">Redirecting to Chrome...</p>
+<body style="background-color: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; margin: 0;">
+    <div style="text-align: center;">
+        <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+        <p>Redirecting to secure link...</p>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </body>
 </html>
